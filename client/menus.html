@@ -1,0 +1,88 @@
+<div id="buttonsContainer">
+  <button class="returnBtn" style="display:none;">Return to Room</button>
+  <button class="manageBtn" style="display:none;" data-is-owner="0">Manage Room</button>
+  <button class="changeBtn" style="display:none;" data-is-owner="0">Change Rooms</button>
+  <button class="loginBtn " style="display:none;">Login</button>
+  <button class="logoutBtn " style="display:none;">Logout</button>
+</div>
+<div id="loginMenuContainer" class="container valign-wrapper " style="display:none;">
+  <div class="row">
+    <div class="col s12 m6 l4 offset-m3 offset-l4">
+      <form href="#" class="loginForm section">
+        <h6>Login / Sign Up</h6>
+        <div class="row">
+          <div class="input-field col s12">
+            <input id="loginMenuEmail" name="email" type="email" class="validate">
+            <label for="loginMenuEmail">Email</label>
+          </div>
+        </div>
+        <div class="row">
+          <div class="input-field col s12">
+            <input id="loginMenuPassword" name="pass" type="password" class="validate">
+            <label for="loginMenuPassword">Password</label>
+          </div>
+        </div>
+        <button class="btn waves-effect waves-light" type="submit" name="login">Login / Sign Up</button>
+      </form>
+      <div class="divider"></div>
+      <div class="loginOAuth section">
+        <div class="row">
+          <div class="col s12 l4">
+            <a class="waves-effect waves-light btn white loginGoogle"><i class="fa fa-google"></i> Google Login</a>
+          </div>
+          <div class="col s12 l4">
+            <a class="waves-effect waves-light btn white loginGithub"><i class="fa fa-github"></i> GitHub Login</a>
+          </div>
+          <div class="col s12 l4">
+            <a class="waves-effect waves-light btn white loginAnon"><i class="fa fa-user-secret"></i> View-Only Guest</a>
+          </div>
+        </div>
+      </div>
+      <form href="#" class="usernameForm section " style="display:none;">
+        <h6>Please Choose a Username</h6>
+        <div class="row">
+          <div class="input-field col s12">
+            <input id="loginMenuUsername" name="username" type="text" class="validate" match="^\S{5,}$">
+            <label for="loginMenuUsername">Username</label>
+          </div>
+        </div>
+        <button class="btn waves-effect waves-light" type="submit" name="login">Continue <i class="fa fa-arrow-right"></i></button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="roomsMenuContainer" class="container valign-wrapper " style="display:none;">
+  <div class="row">
+    <div class="col s12 m6 l4 offset-m3 offset-l4">
+      <div class="section"><h3>Select a Room</h3></div>
+      <div class="divider"></div>
+      <form href="#" class="newRoomForm section hide">
+        <h6>Create a New Room</h6>
+        <div class="row">
+          <div class="input-field col s10 m11">
+            <input id="roomsMenuRoomName" name="room" type="text" class="validate" match="^\S.{3,}\S$">
+            <label for="roomsMenuRoomName">Room Name</label>
+          </div>
+          <div class="input-field col s2 m1">
+            <button class="btn waves-effect waves-light" type="submit" name="create"><i class="fa fa-arrow-right"></i></button>
+          </div>
+        </div>
+      </form>
+      <div class="divider"></div>
+      <div class="section UsersRooms">
+        <h6>Your Rooms:</h6>
+        <div class="collection">
+          <a class="collection-item" href="#">No Rooms, Try Making a New One!</a>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="section sharedRooms" style="display:none;">
+        <h6>Rooms Shared With You:</h6>
+        <div class="collection"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="manageRoomMenuContainer" class="container valign-wrapper " style="display:none;"></div>
