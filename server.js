@@ -7,18 +7,21 @@ const MongoStore = require('connect-mongo')(session);
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
+const userSchema = require('./lib/user.schema.js');
+
 const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const helmet = require("helmet");
 
 const passport = require('passport');
+const passportSocketIo = require("passport.socketio");
 const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 const GitHubStrategy = require('passport-github').Strategy;
 
 const painter_dir = __dirname + '/a-painter';
 const clients = [];
-const rooms = {};
+const rooms = new (require('./lib/rooms.js'))(mongoose);
 
 const token = function() {
     return Math.random().toString(36).substr(2) + Math.random().toString(36).substr(2);
@@ -34,7 +37,7 @@ passport.use(new GoogleStrategy({
     }
 ));
 
-passport.use(new GoogleStrategy({
+passport.use(new GitHubStrategy({
         clientID: config.auth.github.clientID,
         clientSecret: config.auth.github.clientSecret,
         callbackURL: config.auth.github.callbackURL
@@ -51,6 +54,7 @@ const mongoStore = new MongoStore({
 
 app.use(session({
     secret: config.sessionSecret,
+    name: 'a-painter-mongo.sid',
     saveUninitialized: false, // dont save empty sessions
     resave: false, //don't save unchanged sessions
     store: mongoStore
@@ -70,6 +74,12 @@ app.use('/', express.static(__dirname + '/dist'));
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+io.use(passportSocketIo.authorize({
+    key: 'a-painter-mongo.sid',
+    secret: config.sessionSecret,
+    store: mongoStore
+}));
 
 //app.use(webpackDevMiddleware(compiler, {
 //    publicPath: webpackConfig.output.publicPath
@@ -113,15 +123,19 @@ app.get('/logout', function(req, res){
 });
 
 io.on('connect', function(socket){
-    socket.owner = token();
-    while(clients.indexOf(socket.owner) !== -1) socket.owner = token();
-    clients.push(socket.owner);
+    socket.owner = socket.request.user._id;
 
-    socket.on('joinRoom', function(room){
-        socket.joinedRoom = room;
-        socket.join(room);
-        if(!roomlog[room]) roomlog[room] = {};
-        socket.emit('joinedRoom', roomlog[room]);
+    socket.on('joinRoom', function(tag){
+        socket.joinedRoom = tag;
+        socket.join(tag);
+        rooms.joinRoom(tag, socket.owner).then((room)=> {
+            socket.emit('joinedRoom', {});
+        }).catch(err=>{
+            if(err.name !== 'Error'){
+                console.error(err);
+                socket.emit('error', 'An unknown error occurred. 44654');
+            } else socket.emit('error', err.message);
+        });
     });
 
     socket.on('newStroke', function(event){
@@ -158,18 +172,23 @@ io.on('connect', function(socket){
         socket.broadcast.to(socket.joinedRoom).emit('userMove', event);
     });
 
-    socket.on('userLeave', function(){
+    socket.on('exitVR', function(){
         if(!socket.joinedRoom) return;
-        socket.broadcast.to(socket.joinedRoom).emit('userLeave', {owner: socket.owner});
+        socket.broadcast.to(socket.joinedRoom).emit('exitVR', {owner: socket.owner});
     });
 
     socket.on('disconnect', function(){
         if(!socket.joinedRoom) return;
-        socket.broadcast.to(socket.joinedRoom).emit('userLeave', {owner: socket.owner});
+        socket.broadcast.to(socket.joinedRoom).emit('exitVR', {owner: socket.owner});
     });
 
     socket.emit('giveOwner', socket.owner);
 });
+
+let mongoauth = `${config.database.mongo.user}:${config.database.mongo.password}@`;
+if(mongoauth === ':@') mongoauth = '';
+const mongouri = `mongodb://${mongoauth}${config.database.mongo.host}:${config.database.mongo.port}/${config.database.mongo.name}`;
+mongoose.connect(mongouri, {useMongoClient: true});
 
 server.listen(3002);
 console.log('Server running on port 3002');
